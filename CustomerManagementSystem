@@ -1,0 +1,156 @@
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+
+namespace CustomerManagementSystem
+{
+    // Define the customer model
+    public class Customer
+    {
+        [Key]
+        public int Id { get; set; }
+
+        [Required]
+        [MaxLength(100)]
+        public string Name { get; set; }
+
+        [MaxLength(100)]
+        public string Email { get; set; }
+
+        [MaxLength(15)]
+        public string Phone { get; set; }
+    }
+
+    // Define the database context
+    public class CustomerDbContext : DbContext
+    {
+        public DbSet<Customer> Customers { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder options)
+            => options.UseSqlite("Data Source=customers.db");
+    }
+
+    // Define the service to interact with customers
+    public class CustomerService
+    {
+        private readonly CustomerDbContext _context;
+
+        public CustomerService()
+        {
+            _context = new CustomerDbContext();
+            _context.Database.EnsureCreated();
+        }
+
+        public void AddCustomer(Customer customer)
+        {
+            _context.Customers.Add(customer);
+            _context.SaveChanges();
+            Console.WriteLine("Customer added successfully.");
+        }
+
+        public void UpdateCustomer(int id, Customer updatedCustomer)
+        {
+            var existingCustomer = _context.Customers.Find(id);
+            if (existingCustomer != null)
+            {
+                existingCustomer.Name = updatedCustomer.Name;
+                existingCustomer.Email = updatedCustomer.Email;
+                existingCustomer.Phone = updatedCustomer.Phone;
+                _context.SaveChanges();
+                Console.WriteLine("Customer updated successfully.");
+            }
+            else
+            {
+                Console.WriteLine("Customer not found.");
+            }
+        }
+
+        public void DeleteCustomer(int id)
+        {
+            var customer = _context.Customers.Find(id);
+            if (customer != null)
+            {
+                _context.Customers.Remove(customer);
+                _context.SaveChanges();
+                Console.WriteLine("Customer deleted successfully.");
+            }
+            else
+            {
+                Console.WriteLine("Customer not found.");
+            }
+        }
+
+        public void ViewAllCustomers()
+        {
+            var customers = _context.Customers;
+            Console.WriteLine("All Customers:");
+            foreach (var customer in customers)
+            {
+                Console.WriteLine($"ID: {customer.Id}, Name: {customer.Name}, Email: {customer.Email}, Phone: {customer.Phone}");
+            }
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            CustomerService customerService = new CustomerService();
+
+            while (true)
+            {
+                Console.WriteLine("Customer Management System");
+                Console.WriteLine("1. Add Customer");
+                Console.WriteLine("2. Update Customer");
+                Console.WriteLine("3. Delete Customer");
+                Console.WriteLine("4. View All Customers");
+                Console.WriteLine("5. Exit");
+                Console.Write("Enter your choice: ");
+                string choice = Console.ReadLine();
+
+                switch (choice)
+                {
+                    case "1":
+                        Console.Write("Enter customer name: ");
+                        string name = Console.ReadLine();
+                        Console.Write("Enter customer email: ");
+                        string email = Console.ReadLine();
+                        Console.Write("Enter customer phone: ");
+                        string phone = Console.ReadLine();
+                        Customer newCustomer = new Customer { Name = name, Email = email, Phone = phone };
+                        customerService.AddCustomer(newCustomer);
+                        break;
+                    case "2":
+                        Console.Write("Enter customer ID to update: ");
+                        int updateId = int.Parse(Console.ReadLine());
+                        Console.Write("Enter updated name: ");
+                        string updatedName = Console.ReadLine();
+                        Console.Write("Enter updated email: ");
+                        string updatedEmail = Console.ReadLine();
+                        Console.Write("Enter updated phone: ");
+                        string updatedPhone = Console.ReadLine();
+                        Customer updatedCustomer = new Customer { Name = updatedName, Email = updatedEmail, Phone = updatedPhone };
+                        customerService.UpdateCustomer(updateId, updatedCustomer);
+                        break;
+                    case "3":
+                        Console.Write("Enter customer ID to delete: ");
+                        int deleteId = int.Parse(Console.ReadLine());
+                        customerService.DeleteCustomer(deleteId);
+                        break;
+                    case "4":
+                        customerService.ViewAllCustomers();
+                        break;
+                    case "5":
+                        Environment.Exit(0);
+                        break;
+                    default:
+                        Console.WriteLine("Invalid choice. Please enter a valid option.");
+                        break;
+                }
+
+                Console.WriteLine();
+            }
+        }
+    }
+}
