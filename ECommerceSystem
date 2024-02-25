@@ -1,0 +1,188 @@
+using System;
+using System.Collections.Generic;
+
+namespace ECommerceSystem
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            ECommerceSystem system = new ECommerceSystem();
+
+            while (true)
+            {
+                Console.WriteLine("Welcome to E-Commerce System");
+                Console.WriteLine("1. Browse Products");
+                Console.WriteLine("2. Add Product to Cart");
+                Console.WriteLine("3. View Cart");
+                Console.WriteLine("4. Checkout");
+                Console.WriteLine("5. View Order History");
+                Console.WriteLine("6. Exit");
+                Console.Write("Enter your choice: ");
+                string choice = Console.ReadLine();
+
+                switch (choice)
+                {
+                    case "1":
+                        system.BrowseProducts();
+                        break;
+                    case "2":
+                        Console.Write("Enter product ID to add to cart: ");
+                        int productId = int.Parse(Console.ReadLine());
+                        system.AddToCart(productId);
+                        break;
+                    case "3":
+                        system.ViewCart();
+                        break;
+                    case "4":
+                        system.Checkout();
+                        break;
+                    case "5":
+                        system.ViewOrderHistory();
+                        break;
+                    case "6":
+                        Environment.Exit(0);
+                        break;
+                    default:
+                        Console.WriteLine("Invalid choice. Please enter a valid option.");
+                        break;
+                }
+
+                Console.WriteLine();
+            }
+        }
+    }
+
+    class Product
+    {
+        public int Id { get; }
+        public string Name { get; }
+        public double Price { get; }
+
+        public Product(int id, string name, double price)
+        {
+            Id = id;
+            Name = name;
+            Price = price;
+        }
+    }
+
+    class Order
+    {
+        public List<Product> Products { get; }
+        public double TotalPrice { get; }
+        public DateTime Date { get; }
+
+        public Order(List<Product> products, double totalPrice)
+        {
+            Products = products;
+            TotalPrice = totalPrice;
+            Date = DateTime.Now;
+        }
+    }
+
+    class User
+    {
+        public int Id { get; }
+        public List<Order> OrderHistory { get; }
+
+        public User(int id)
+        {
+            Id = id;
+            OrderHistory = new List<Order>();
+        }
+    }
+
+    class ECommerceSystem
+    {
+        private List<Product> products;
+        private List<User> users;
+        private User currentUser;
+        private List<Product> cart;
+
+        public ECommerceSystem()
+        {
+            products = new List<Product>();
+            users = new List<User>();
+            cart = new List<Product>();
+
+            // Dummy products
+            products.Add(new Product(1, "Laptop", 999.99));
+            products.Add(new Product(2, "Smartphone", 499.99));
+            products.Add(new Product(3, "Headphones", 99.99));
+        }
+
+        public void BrowseProducts()
+        {
+            Console.WriteLine("Available Products:");
+            foreach (Product product in products)
+            {
+                Console.WriteLine($"ID: {product.Id}, Name: {product.Name}, Price: ${product.Price}");
+            }
+        }
+
+        public void AddToCart(int productId)
+        {
+            Product product = products.Find(p => p.Id == productId);
+            if (product != null)
+            {
+                cart.Add(product);
+                Console.WriteLine("Product added to cart.");
+            }
+            else
+            {
+                Console.WriteLine("Product not found.");
+            }
+        }
+
+        public void ViewCart()
+        {
+            Console.WriteLine("Cart Contents:");
+            foreach (Product product in cart)
+            {
+                Console.WriteLine($"Name: {product.Name}, Price: ${product.Price}");
+            }
+        }
+
+        public void Checkout()
+        {
+            if (cart.Count == 0)
+            {
+                Console.WriteLine("Cart is empty. Add products to proceed to checkout.");
+                return;
+            }
+
+            double totalPrice = 0;
+            foreach (Product product in cart)
+            {
+                totalPrice += product.Price;
+            }
+
+            currentUser.OrderHistory.Add(new Order(cart, totalPrice));
+            cart.Clear();
+
+            Console.WriteLine("Checkout successful. Order placed.");
+        }
+
+        public void ViewOrderHistory()
+        {
+            if (currentUser.OrderHistory.Count == 0)
+            {
+                Console.WriteLine("No orders found in history.");
+                return;
+            }
+
+            Console.WriteLine("Order History:");
+            foreach (Order order in currentUser.OrderHistory)
+            {
+                Console.WriteLine($"Date: {order.Date}, Total Price: ${order.TotalPrice}");
+                Console.WriteLine("Products:");
+                foreach (Product product in order.Products)
+                {
+                    Console.WriteLine($"Name: {product.Name}, Price: ${product.Price}");
+                }
+                Console.WriteLine();
+            }
+        }
+    }
+}
