@@ -1,0 +1,200 @@
+using System;
+using System.Collections.Generic;
+
+namespace LibraryManagementSystem
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Library library = new Library();
+
+            while (true)
+            {
+                Console.WriteLine("Library Management System");
+                Console.WriteLine("1. Add Book");
+                Console.WriteLine("2. Borrow Book");
+                Console.WriteLine("3. Return Book");
+                Console.WriteLine("4. View Available Books");
+                Console.WriteLine("5. View Borrowed Books");
+                Console.WriteLine("6. View User Information");
+                Console.WriteLine("7. Exit");
+                Console.Write("Enter your choice: ");
+                string choice = Console.ReadLine();
+
+                switch (choice)
+                {
+                    case "1":
+                        Console.Write("Enter book title: ");
+                        string title = Console.ReadLine();
+                        Console.Write("Enter book author: ");
+                        string author = Console.ReadLine();
+                        library.AddBook(title, author);
+                        break;
+                    case "2":
+                        Console.Write("Enter book title to borrow: ");
+                        string borrowTitle = Console.ReadLine();
+                        Console.Write("Enter user ID: ");
+                        int userId = int.Parse(Console.ReadLine());
+                        library.BorrowBook(borrowTitle, userId);
+                        break;
+                    case "3":
+                        Console.Write("Enter book title to return: ");
+                        string returnTitle = Console.ReadLine();
+                        library.ReturnBook(returnTitle);
+                        break;
+                    case "4":
+                        library.ViewAvailableBooks();
+                        break;
+                    case "5":
+                        library.ViewBorrowedBooks();
+                        break;
+                    case "6":
+                        Console.Write("Enter user ID: ");
+                        int viewUserId = int.Parse(Console.ReadLine());
+                        library.ViewUserInformation(viewUserId);
+                        break;
+                    case "7":
+                        Environment.Exit(0);
+                        break;
+                    default:
+                        Console.WriteLine("Invalid choice. Please enter a valid option.");
+                        break;
+                }
+
+                Console.WriteLine();
+            }
+        }
+    }
+
+    class Book
+    {
+        public string Title { get; }
+        public string Author { get; }
+        public bool IsBorrowed { get; set; }
+
+        public Book(string title, string author)
+        {
+            Title = title;
+            Author = author;
+            IsBorrowed = false;
+        }
+    }
+
+    class User
+    {
+        public int Id { get; }
+        public List<string> BorrowedBooks { get; }
+
+        public User(int id)
+        {
+            Id = id;
+            BorrowedBooks = new List<string>();
+        }
+    }
+
+    class Library
+    {
+        private List<Book> books;
+        private List<User> users;
+        private int nextUserId;
+
+        public Library()
+        {
+            books = new List<Book>();
+            users = new List<User>();
+            nextUserId = 1;
+        }
+
+        public void AddBook(string title, string author)
+        {
+            Book newBook = new Book(title, author);
+            books.Add(newBook);
+            Console.WriteLine("Book added successfully.");
+        }
+
+        public void BorrowBook(string title, int userId)
+        {
+            Book book = books.Find(b => b.Title == title);
+            if (book != null && !book.IsBorrowed)
+            {
+                book.IsBorrowed = true;
+                User user = GetUser(userId);
+                if (user != null)
+                {
+                    user.BorrowedBooks.Add(title);
+                    Console.WriteLine("Book borrowed successfully.");
+                }
+                else
+                {
+                    Console.WriteLine("User not found.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Book not available for borrowing.");
+            }
+        }
+
+        public void ReturnBook(string title)
+        {
+            Book book = books.Find(b => b.Title == title);
+            if (book != null && book.IsBorrowed)
+            {
+                book.IsBorrowed = false;
+                Console.WriteLine("Book returned successfully.");
+            }
+            else
+            {
+                Console.WriteLine("Book not found or not borrowed.");
+            }
+        }
+
+        public void ViewAvailableBooks()
+        {
+            Console.WriteLine("Available Books:");
+            foreach (Book book in books)
+            {
+                if (!book.IsBorrowed)
+                {
+                    Console.WriteLine($"Title: {book.Title}, Author: {book.Author}");
+                }
+            }
+        }
+
+        public void ViewBorrowedBooks()
+        {
+            Console.WriteLine("Borrowed Books:");
+            foreach (Book book in books)
+            {
+                if (book.IsBorrowed)
+                {
+                    Console.WriteLine($"Title: {book.Title}, Author: {book.Author}");
+                }
+            }
+        }
+
+        public void ViewUserInformation(int userId)
+        {
+            User user = GetUser(userId);
+            if (user != null)
+            {
+                Console.WriteLine($"User ID: {user.Id}");
+                Console.WriteLine("Borrowed Books:");
+                foreach (string bookTitle in user.BorrowedBooks)
+                {
+                    Console.WriteLine(bookTitle);
+                }
+            }
+            else
+            {
+                Console.WriteLine("User not found.");
+            }
+        }
+
+        private User GetUser(int userId)
+        {
+            return users.Find(u => u.Id == userId);
+        }
+    }
+}
