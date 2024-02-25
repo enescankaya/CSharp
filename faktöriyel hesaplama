@@ -1,0 +1,35 @@
+using System;
+
+namespace FaktoriyelHesaplama
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Faktöriyelini hesaplamak istediğiniz sayıyı girin:");
+            
+            // Kullanıcıdan bir sayı al
+            int sayi = Convert.ToInt32(Console.ReadLine());
+            
+            // Faktöriyel hesabı için bir metoda yönlendir
+            long faktoriyel = FaktoriyelHesapla(sayi);
+            
+            // Sonucu ekrana yazdır
+            Console.WriteLine($"{sayi}! = {faktoriyel}");
+        }
+        
+        // Faktöriyel hesaplamak için metot
+        static long FaktoriyelHesapla(int n)
+        {
+            if (n == 0)
+                return 1;
+            
+            long sonuc = 1;
+            for (int i = 1; i <= n; i++)
+            {
+                sonuc *= i;
+            }
+            return sonuc;
+        }
+    }
+}
