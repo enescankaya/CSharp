@@ -1,0 +1,127 @@
+using System;
+using System.Collections.Generic;
+
+namespace TaskManagementSystem
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            TaskManager taskManager = new TaskManager();
+            bool exit = false;
+
+            while (!exit)
+            {
+                Console.WriteLine("Task Management System");
+                Console.WriteLine("1. Add Task");
+                Console.WriteLine("2. Mark Task as Complete");
+                Console.WriteLine("3. View All Tasks");
+                Console.WriteLine("4. Remove Task");
+                Console.WriteLine("5. Exit");
+                Console.Write("Enter your choice: ");
+                string choice = Console.ReadLine();
+
+                switch (choice)
+                {
+                    case "1":
+                        Console.Write("Enter task description: ");
+                        string description = Console.ReadLine();
+                        taskManager.AddTask(description);
+                        break;
+                    case "2":
+                        Console.Write("Enter task ID to mark as complete: ");
+                        int taskId = int.Parse(Console.ReadLine());
+                        taskManager.MarkTaskAsComplete(taskId);
+                        break;
+                    case "3":
+                        taskManager.ViewAllTasks();
+                        break;
+                    case "4":
+                        Console.Write("Enter task ID to remove: ");
+                        int taskIdToRemove = int.Parse(Console.ReadLine());
+                        taskManager.RemoveTask(taskIdToRemove);
+                        break;
+                    case "5":
+                        exit = true;
+                        break;
+                    default:
+                        Console.WriteLine("Invalid choice. Please enter a valid option.");
+                        break;
+                }
+
+                Console.WriteLine();
+            }
+        }
+    }
+
+    class Task
+    {
+        public int Id { get; }
+        public string Description { get; }
+        public bool IsCompleted { get; set; }
+
+        public Task(int id, string description)
+        {
+            Id = id;
+            Description = description;
+            IsCompleted = false;
+        }
+    }
+
+    class TaskManager
+    {
+        private List<Task> tasks;
+        private int nextId;
+
+        public TaskManager()
+        {
+            tasks = new List<Task>();
+            nextId = 1;
+        }
+
+        public void AddTask(string description)
+        {
+            Task newTask = new Task(nextId, description);
+            tasks.Add(newTask);
+            nextId++;
+            Console.WriteLine("Task added successfully.");
+        }
+
+        public void MarkTaskAsComplete(int taskId)
+        {
+            Task task = tasks.Find(t => t.Id == taskId);
+            if (task != null)
+            {
+                task.IsCompleted = true;
+                Console.WriteLine("Task marked as complete.");
+            }
+            else
+            {
+                Console.WriteLine("Task not found.");
+            }
+        }
+
+        public void ViewAllTasks()
+        {
+            Console.WriteLine("All Tasks:");
+            foreach (Task task in tasks)
+            {
+                Console.WriteLine($"ID: {task.Id}, Description: {task.Description}, Completed: {(task.IsCompleted ? "Yes" : "No")}");
+            }
+        }
+
+        public void RemoveTask(int taskId)
+        {
+            Task taskToRemove = tasks.Find(t => t.Id == taskId);
+            if (taskToRemove != null)
+            {
+                tasks.Remove(taskToRemove);
+                Console.WriteLine("Task removed successfully.");
+            }
+            else
+            {
+                Console.WriteLine("Task not found.");
+            }
+        }
+    }
+}
