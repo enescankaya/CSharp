@@ -1,0 +1,217 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+
+namespace InventoryManagementSystem
+{
+    // Define the product model
+    public class Product
+    {
+        [Key]
+        public int Id { get; set; }
+
+        [Required]
+        public string Name { get; set; }
+
+        [Required]
+        public double Price { get; set; }
+
+        [Required]
+        public int Quantity { get; set; }
+    }
+
+    // Define the order model
+    public class Order
+    {
+        [Key]
+        public int Id { get; set; }
+
+        public DateTime Date { get; set; }
+
+        [ForeignKey("ProductId")]
+        public int ProductId { get; set; }
+
+        public int Quantity { get; set; }
+    }
+
+    // Define the database context
+    public class InventoryDbContext : DbContext
+    {
+        public DbSet<Product> Products { get; set; }
+        public DbSet<Order> Orders { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder options)
+            => options.UseSqlite("Data Source=inventory.db");
+    }
+
+    // Define the service to interact with inventory
+    public class InventoryService
+    {
+        private readonly InventoryDbContext _context;
+
+        public InventoryService()
+        {
+            _context = new InventoryDbContext();
+            _context.Database.EnsureCreated();
+        }
+
+        public void AddProduct(Product product)
+        {
+            _context.Products.Add(product);
+            _context.SaveChanges();
+            Console.WriteLine("Product added successfully.");
+        }
+
+        public void UpdateProduct(int id, Product updatedProduct)
+        {
+            var existingProduct = _context.Products.Find(id);
+            if (existingProduct != null)
+            {
+                existingProduct.Name = updatedProduct.Name;
+                existingProduct.Price = updatedProduct.Price;
+                existingProduct.Quantity = updatedProduct.Quantity;
+                _context.SaveChanges();
+                Console.WriteLine("Product updated successfully.");
+            }
+            else
+            {
+                Console.WriteLine("Product not found.");
+            }
+        }
+
+        public void DeleteProduct(int id)
+        {
+            var product = _context.Products.Find(id);
+            if (product != null)
+            {
+                _context.Products.Remove(product);
+                _context.SaveChanges();
+                Console.WriteLine("Product deleted successfully.");
+            }
+            else
+            {
+                Console.WriteLine("Product not found.");
+            }
+        }
+
+        public void PlaceOrder(int productId, int quantity)
+        {
+            var product = _context.Products.Find(productId);
+            if (product != null)
+            {
+                if (product.Quantity >= quantity)
+                {
+                    product.Quantity -= quantity;
+                    _context.Orders.Add(new Order { Date = DateTime.Now, ProductId = productId, Quantity = quantity });
+                    _context.SaveChanges();
+                    Console.WriteLine("Order placed successfully.");
+                }
+                else
+                {
+                    Console.WriteLine("Insufficient stock.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Product not found.");
+            }
+        }
+
+        public void ViewInventory()
+        {
+            var products = _context.Products;
+            Console.WriteLine("Inventory:");
+            foreach (var product in products)
+            {
+                Console.WriteLine($"ID: {product.Id}, Name: {product.Name}, Price: ${product.Price}, Quantity: {product.Quantity}");
+            }
+        }
+
+        public void ViewOrders()
+        {
+            var orders = _context.Orders.Include(o => o.Product);
+            Console.WriteLine("Orders:");
+            foreach (var order in orders)
+            {
+                Console.WriteLine($"ID: {order.Id}, Date: {order.Date}, Product: {order.Product.Name}, Quantity: {order.Quantity}");
+            }
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            InventoryService inventoryService = new InventoryService();
+
+            while (true)
+            {
+                Console.WriteLine("Inventory Management System");
+                Console.WriteLine("1. Add Product");
+                Console.WriteLine("2. Update Product");
+                Console.WriteLine("3. Delete Product");
+                Console.WriteLine("4. Place Order");
+                Console.WriteLine("5. View Inventory");
+                Console.WriteLine("6. View Orders");
+                Console.WriteLine("7. Exit");
+                Console.Write("Enter your choice: ");
+                string choice = Console.ReadLine();
+
+                switch (choice)
+                {
+                    case "1":
+                        Console.Write("Enter product name: ");
+                        string name = Console.ReadLine();
+                        Console.Write("Enter product price: ");
+                        double price = double.Parse(Console.ReadLine());
+                        Console.Write("Enter initial quantity: ");
+                        int quantity = int.Parse(Console.ReadLine());
+                        Product newProduct = new Product { Name = name, Price = price, Quantity = quantity };
+                        inventoryService.AddProduct(newProduct);
+                        break;
+                    case "2":
+                        Console.Write("Enter product ID to update: ");
+                        int updateId = int.Parse(Console.ReadLine());
+                        Console.Write("Enter updated name: ");
+                        string updatedName = Console.ReadLine();
+                        Console.Write("Enter updated price: ");
+                        double updatedPrice = double.Parse(Console.ReadLine());
+                        Console.Write("Enter updated quantity: ");
+                        int updatedQuantity = int.Parse(Console.ReadLine());
+                        Product updatedProduct = new Product { Name = updatedName, Price = updatedPrice, Quantity = updatedQuantity };
+                        inventoryService.UpdateProduct(updateId, updatedProduct);
+                        break;
+                    case "3":
+                        Console.Write("Enter product ID to delete: ");
+                        int deleteId = int.Parse(Console.ReadLine());
+                        inventoryService.DeleteProduct(deleteId);
+                        break;
+                    case "4":
+                        Console.Write("Enter product ID to order: ");
+                        int productId = int.Parse(Console.ReadLine());
+                        Console.Write("Enter quantity: ");
+                        int orderQuantity = int.Parse(Console.ReadLine());
+                        inventoryService.PlaceOrder(productId, orderQuantity);
+                        break;
+                    case "5":
+                        inventoryService.ViewInventory();
+                        break;
+                    case "6":
+                        inventoryService.ViewOrders();
+                        break;
+                    case "7":
+                        Environment.Exit(0);
+                        break;
+                    default:
+                        Console.WriteLine("Invalid choice. Please enter a valid option.");
+                        break;
+                }
+
+                Console.WriteLine();
+            }
+        }
+    }
+}
