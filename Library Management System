@@ -1,0 +1,158 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
+
+namespace ComplexLibraryManagementSystem
+{
+    public partial class MainForm : Form
+    {
+        private List<Book> library = new List<Book>();
+
+        public MainForm()
+        {
+            InitializeComponent();
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            LoadLibraryFromFile("library.txt");
+            DisplayLibrary();
+        }
+
+        private void btnSave_Click(object sender, EventArgs e)
+        {
+            SaveLibraryToFile("library.txt");
+        }
+
+        private void btnAdd_Click(object sender, EventArgs e)
+        {
+            string title = txtTitle.Text;
+            string author = txtAuthor.Text;
+            string isbn = txtISBN.Text;
+
+            if (!string.IsNullOrWhiteSpace(title) && !string.IsNullOrWhiteSpace(author) && !string.IsNullOrWhiteSpace(isbn))
+            {
+                Book newBook = new Book(title, author, isbn);
+                library.Add(newBook);
+                DisplayLibrary();
+                ClearTextBoxes();
+            }
+            else
+            {
+                MessageBox.Show("Please enter valid book details.", "Invalid Input", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnRemove_Click(object sender, EventArgs e)
+        {
+            if (lstBooks.SelectedItem != null)
+            {
+                library.RemoveAt(lstBooks.SelectedIndex);
+                DisplayLibrary();
+            }
+            else
+            {
+                MessageBox.Show("Please select a book to remove.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void btnSearch_Click(object sender, EventArgs e)
+        {
+            string searchTerm = txtSearch.Text.ToLower();
+            var searchResults = library.Where(book => book.Title.ToLower().Contains(searchTerm) || book.Author.ToLower().Contains(searchTerm) || book.ISBN.ToLower().Contains(searchTerm)).ToList();
+            DisplaySearchResults(searchResults);
+        }
+
+        private void DisplayLibrary()
+        {
+            lstBooks.Items.Clear();
+            foreach (Book book in library)
+            {
+                lstBooks.Items.Add(book);
+            }
+        }
+
+        private void DisplaySearchResults(List<Book> searchResults)
+        {
+            lstBooks.Items.Clear();
+            foreach (Book book in searchResults)
+            {
+                lstBooks.Items.Add(book);
+            }
+        }
+
+        private void ClearTextBoxes()
+        {
+            txtTitle.Clear();
+            txtAuthor.Clear();
+            txtISBN.Clear();
+        }
+
+        private void LoadLibraryFromFile(string filename)
+        {
+            try
+            {
+                using (StreamReader sr = new StreamReader(filename))
+                {
+                    string line;
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        string[] parts = line.Split(',');
+                        if (parts.Length == 3)
+                        {
+                            Book book = new Book(parts[0], parts[1], parts[2]);
+                            library.Add(book);
+                        }
+                    }
+                }
+            }
+            catch (FileNotFoundException)
+            {
+                MessageBox.Show("Library file not found. Creating a new library.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void SaveLibraryToFile(string filename)
+        {
+            try
+            {
+                using (StreamWriter sw = new StreamWriter(filename))
+                {
+                    foreach (Book book in library)
+                    {
+                        sw.WriteLine($"{book.Title},{book.Author},{book.ISBN}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred while saving library: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+    }
+
+    public class Book
+    {
+        public string Title { get; }
+        public string Author { get; }
+        public string ISBN { get; }
+
+        public Book(string title, string author, string isbn)
+        {
+            Title = title;
+            Author = author;
+            ISBN = isbn;
+        }
+
+        public override string ToString()
+        {
+            return $"{Title} by {Author} (ISBN: {ISBN})";
+        }
+    }
+}
