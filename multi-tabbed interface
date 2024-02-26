@@ -1,0 +1,110 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Windows.Forms;
+
+namespace ComplexWindowsFormsApp
+{
+    public partial class MainForm : Form
+    {
+        private List<Person> peopleList = new List<Person>();
+
+        public MainForm()
+        {
+            InitializeComponent();
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            LoadDataFromFile("people.txt");
+        }
+
+        private void btnSave_Click(object sender, EventArgs e)
+        {
+            SaveDataToFile("people.txt");
+        }
+
+        private void btnAdd_Click(object sender, EventArgs e)
+        {
+            string name = txtName.Text;
+            int age;
+
+            if (int.TryParse(txtAge.Text, out age))
+            {
+                Person newPerson = new Person(name, age);
+                peopleList.Add(newPerson);
+                lstPeople.Items.Add(newPerson);
+                txtName.Clear();
+                txtAge.Clear();
+            }
+            else
+            {
+                MessageBox.Show("Please enter a valid age.", "Invalid Age", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void LoadDataFromFile(string filename)
+        {
+            try
+            {
+                using (StreamReader sr = new StreamReader(filename))
+                {
+                    string line;
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        string[] parts = line.Split(',');
+                        if (parts.Length == 2 && int.TryParse(parts[1], out int age))
+                        {
+                            Person person = new Person(parts[0], age);
+                            peopleList.Add(person);
+                            lstPeople.Items.Add(person);
+                        }
+                    }
+                }
+            }
+            catch (FileNotFoundException)
+            {
+                MessageBox.Show("File not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void SaveDataToFile(string filename)
+        {
+            try
+            {
+                using (StreamWriter sw = new StreamWriter(filename))
+                {
+                    foreach (Person person in peopleList)
+                    {
+                        sw.WriteLine($"{person.Name},{person.Age}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred while saving data: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+    }
+
+    public class Person
+    {
+        public string Name { get; }
+        public int Age { get; }
+
+        public Person(string name, int age)
+        {
+            Name = name;
+            Age = age;
+        }
+
+        public override string ToString()
+        {
+            return $"{Name} - Age {Age}";
+        }
+    }
+}
