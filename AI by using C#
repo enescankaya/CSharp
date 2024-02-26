@@ -1,0 +1,116 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace ChatBot
+{
+    class Program
+    {
+        static Random random = new Random();
+        static Dictionary<string, List<string>> conversationTopics = new Dictionary<string, List<string>>
+        {
+            { "greetings", new List<string> { "hello", "hi", "hey", "greetings", "howdy" } },
+            { "farewells", new List<string> { "bye", "goodbye", "see you later", "adios", "farewell" } },
+            { "jokes", new List<string>
+                {
+                    "Why don't scientists trust atoms? Because they make up everything!",
+                    "I told my wife she was drawing her eyebrows too high. She looked surprised!",
+                    "Parallel lines have so much in common. It’s a shame they’ll never meet.",
+                    "I'm reading a book on anti-gravity. It's impossible to put down!",
+                    "Why did the scarecrow win an award? Because he was outstanding in his field!"
+                }
+            },
+            { "calculation", new List<string> { "calculate", "math", "compute" } },
+            { "time", new List<string> { "time", "clock", "hour", "minute", "second" } }
+        };
+
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Welcome to ChatBot! Type 'exit' to end the conversation.");
+
+            while (true)
+            {
+                Console.Write("You: ");
+                string userInput = Console.ReadLine().ToLower();
+
+                if (userInput == "exit")
+                {
+                    Console.WriteLine("ChatBot: Goodbye! Have a great day!");
+                    break;
+                }
+
+                string response = GetResponse(userInput);
+                Console.WriteLine("ChatBot: " + response);
+            }
+        }
+
+        static string GetResponse(string userInput)
+        {
+            foreach (var topic in conversationTopics)
+            {
+                foreach (var keyword in topic.Value)
+                {
+                    if (userInput.Contains(keyword))
+                    {
+                        switch (topic.Key)
+                        {
+                            case "greetings":
+                                return "Hello! How can I assist you today?";
+                            case "farewells":
+                                return "Goodbye! Take care!";
+                            case "jokes":
+                                return GetRandomJoke();
+                            case "calculation":
+                                return PerformCalculation(userInput);
+                            case "time":
+                                return GetCurrentTime();
+                            default:
+                                return "I'm sorry, I don't understand. Can you please rephrase?";
+                        }
+                    }
+                }
+            }
+
+            return "I'm sorry, I don't understand. Can you please rephrase?";
+        }
+
+        static string GetRandomJoke()
+        {
+            return conversationTopics["jokes"][random.Next(conversationTopics["jokes"].Count)];
+        }
+
+        static string PerformCalculation(string userInput)
+        {
+            string[] parts = userInput.Split(new char[] { ' ', ',', '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length != 4)
+            {
+                return "Please provide a valid calculation.";
+            }
+
+            double num1, num2;
+            if (!double.TryParse(parts[1], out num1) || !double.TryParse(parts[3], out num2))
+            {
+                return "Invalid numbers provided for calculation.";
+            }
+
+            switch (parts[2])
+            {
+                case "+":
+                    return $"Result: {num1 + num2}";
+                case "-":
+                    return $"Result: {num1 - num2}";
+                case "*":
+                    return $"Result: {num1 * num2}";
+                case "/":
+                    return num2 != 0 ? $"Result: {num1 / num2}" : "Cannot divide by zero.";
+                default:
+                    return "Invalid operation provided.";
+            }
+        }
+
+        static string GetCurrentTime()
+        {
+            return $"The current time is: {DateTime.Now.ToString("hh:mm:ss tt")}";
+        }
+    }
+}
